@@ -35,7 +35,7 @@ export default function Footer() {
     </div>
     {/* Line only visible on medium and larger screens */}
     <div className="hidden md:block">
-      <Image src={line} alt="Message" className="ml-24 mb-4 h-[40px]" />
+      <Image src={line} alt="Message" className="ml-24  h-[40px]" />
     </div>
   </div>
 

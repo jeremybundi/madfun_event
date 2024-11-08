@@ -1,69 +1,78 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Header from '../components/NavBar';
 import Footer from '../components/Footer';
 import Image from 'next/image';
-import slide from '@/assets/images/slide.png'; // Placeholder image
+import slide from '@/assets/images/slide.png'; 
 import axios from 'axios';
 
+type Ticket = {
+  price: number;
+};
+
+type Show = {
+  tickets: Ticket[];
+  startTime: string; 
+};
+
 type Event = {
-  id: string;
-  name: string;
+  eventId: string;
+  title: string;
   date: string;
   start_time: string;
   end_time: string;
   description: string;
   venue: string;
   total_tickets: number;
-  image_url: string;
+  posterURL: string;
+  shows: Show[];
 };
 
-function EventCard({ event, onClick }: { event: Event, onClick: (event: Event) => void }) {
-  return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden" onClick={() => onClick(event)}>
-      <div className="relative">
-        <div className='rounded p-2 w-full'>
-          <Image
-            src={event.image_url || slide} // Show placeholder image if no event image
-            alt={event.name}
-            width={500}
-            height={300}
-            className="w-full md:h-48 h-36 rounded-md object-cover"
-            onError={(e: any) => e.target.src = slide}  // In case the image URL is broken
-          />
-        </div>
+function EventCard({ event }: { event: Event }) {
+  const leastPrice = event.shows
+    ?.flatMap((show) => show.tickets.map((ticket) => ticket.price))
+    .reduce((min, price) => (price < min ? price : min), Infinity);
 
-        {/* Event Date */}
-        <div className="absolute top-3 left-3 bg-white text-[#E4002B] text-xs font-semibold p-2 rounded-md">
-          {new Date(event.date).toLocaleDateString()} {/* Format date */}
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="text-lg font-poppins font-semibold mb-2">{event.name}</h3>
-        <div className='flex'>        
-          <p className="mt-2 text-gray-500 text-xs font-barlow">Tickets: {event.total_tickets}</p>
-          <button className="bg-[#FFD100] font-semibold text-xs font-poppins py-2 px-4 ml-auto rounded-lg shadow-md hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-300 ease-in-out">
-            Buy 
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+  // Determine the route based on the number of shows
+  const eventRoute = event.shows.length === 1 
+    ? `/events/${event.eventId}/single-show` 
+    : `/events/${event.eventId}/multiple-shows`;
 
-function EventDetails({ event }: { event: Event }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg w-3/4 lg:w-1/2">
-        <button className="absolute top-2 right-2 text-xl text-gray-500">X</button>
-        <h2 className="text-2xl font-semibold mb-4">{event.name}</h2>
-        <p className="mb-4">{event.description}</p>
-        <p className="text-lg font-medium mb-2">Date: {new Date(event.date).toLocaleDateString()}</p>
-        <p className="text-lg font-medium mb-2">Time: {event.start_time} - {event.end_time}</p>
-        <p className="text-lg font-medium">Venue: {event.venue}</p>
+    <Link href={eventRoute}>
+      <div className="bg-white rounded-lg md:h-[420px] shadow-md overflow-hidden cursor-pointer">
+        <div className="relative">
+          <div className="rounded p-2 w-full">
+            <Image
+              src={event.posterURL}
+              alt={event.title}
+              width={400}
+              height={400}
+              className="w-full md:h-[300px] rounded-md object-cover"
+            />
+          </div>
+          <div className="absolute top-3 left-3 bg-white text-[#E4002B] font-poppins text-xs font-semibold p-2 rounded-md">
+            {new Date(event.shows[0]?.startTime).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+            }).toUpperCase()}
+          </div>
+        </div>
+        <div className="p-4">
+          <h3 className="text-lg font-poppins font-semibold mb-2">{event.title}</h3>
+          <div className="flex items-center">
+            <p className="mt-2 text-gray-500 text-xs font-barlow">
+              {leastPrice !== Infinity ? `Play * Ksh. ${leastPrice.toFixed(0)} +` : 'No tickets available'}
+            </p>
+            <button className="bg-[#FFD100] font-semibold text-xs font-poppins py-2 px-4 ml-auto rounded-lg shadow-md hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-300 ease-in-out">
+              Buy
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -75,13 +84,11 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAllEvents, setShowAllEvents] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowBanner(false);
-    }, 10000);
-
+    }, 20000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -96,10 +103,13 @@ export default function Page() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/event/get/public');
-        console.log(response.data); // Log the entire response data
-        if (response.data && response.data.status === 'success') {
-          setEvents(Object.values(response.data.data));
+        const response = await axios.get('https://events.madfun-adventures.com/api/v3/public/events');
+        if (response.data.status === 'SUCCESS') {
+          setEvents(response.data.data); 
+          console.log(response.data.data);
+        } else {
+          console.error('Failed to fetch events:', response.data);
+          setError('Failed to fetch events');
         }
       } catch (err) {
         setError('Error fetching events');
@@ -113,10 +123,6 @@ export default function Page() {
   }, []);
 
   const displayedEvents = showAllEvents ? events : events.slice(0, 4);
-
-  const openEventDetails = (event: Event) => {
-    setSelectedEvent(event);
-  };
 
   return (
     <div>
@@ -168,54 +174,50 @@ export default function Page() {
           <div className="text-red-500">{error}</div>
         ) : (
           <div>
-            {/* Grid layout for events */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {displayedEvents.map((event) => (
-                <EventCard key={event.id} event={event} onClick={openEventDetails} />
+                <EventCard key={event.eventId} event={event} />
               ))}
             </div>
 
-            {/* View More button */}
             {!showAllEvents && events.length > 4 && (
-              <div className="flex justify-center mt-4">
+              <div className="flex flex-col items-center justify-center mt-4">
                 <button
                   onClick={() => setShowAllEvents(true)}
-                  className="flex items-center text-xs font-semibold hover:underline"
+                  className="text-xs font-semibold hover:underline"
                 >
                   View More
+                </button>
+                <div className="mt-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="15"
-                    height="20"
+                    width="25"
+                    height="30"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 16 16"
-                    className="font-semibold ml-2"
+                    className="font-bold"
                   >
                     <path d="M3 4L8 9L13 4" />
                   </svg>
-                </button>
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Section for All Events */}
+      {/* All Events Section */}
       <div className="bg-[#F3F5F8]">
         <div className="m-8">
           <p className="font-semibold text-xl font-poppins py-4 my-4">ALL UPCOMING EVENTS</p>
-          {/* Grid layout for events */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
             {events.map((event) => (
-              <EventCard key={event.id} event={event} onClick={openEventDetails} />
+              <EventCard key={event.eventId} event={event} />
             ))}
           </div>
         </div>
       </div>
-
-      {/* Event Details Section */}
-      {selectedEvent && <EventDetails event={selectedEvent} />}
 
       <Footer />
     </div>

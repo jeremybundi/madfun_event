@@ -24,3 +24,24 @@ body {
 .animate-slide {
   animation: slide 10s infinite linear;
 }
+
+
+.truncate-multiline {
+  display: -webkit-box;
+  -webkit-line-clamp: 4; /* Show up to 4 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+.truncate-multiline::after {
+  content: '...Read more';
+  color: #3b82f6; /* Tailwind's blue-500 */
+  cursor: pointer;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: white;
+  padding-left: 4px;
+}
