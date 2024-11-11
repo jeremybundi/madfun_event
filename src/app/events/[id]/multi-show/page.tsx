@@ -326,9 +326,6 @@ export default function EventDetailsPage() {
           </div>
         ))}
       </div>
-  
-
-
 
   <div className="flex justify-between mx-8 items-center mt-12">
     <div className="flex flex-col">
