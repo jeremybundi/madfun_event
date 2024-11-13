@@ -124,22 +124,42 @@ export default function EventDetailsPage() {
   if (error || !event) {
     return <div>{error || "Event not found."}</div>;
   }
-  const specialGuests = event.specialGuests ? JSON.parse(event.specialGuests) : [];
+
+
+  let specialGuests: { name: string }[] = [];
+
+  if (event.specialGuests) {
+    try {
+
+      if (event.specialGuests.trim().startsWith('[') && event.specialGuests.trim().endsWith(']')) {
+
+        specialGuests = JSON.parse(event.specialGuests);
+      } else if (event.specialGuests.includes(',')) {
+        const guestsArray = event.specialGuests.split(',').map(guest => ({ name: guest.trim() }));
+        specialGuests = guestsArray;
+      } else {
+        specialGuests = [{ name: event.specialGuests }];
+      }
+    } catch (error) {
+      console.error("Error parsing specialGuests:", error);
+      specialGuests = [];
+    }
+  }
 
   const formatShowStartTime = (startTime: string | Date) => {
     const date = new Date(startTime);
   
     // Check if date is invalid
     if (isNaN(date.getTime())) {
-      return 'Invalid date'; // Fallback for invalid dates
+      return 'Invalid date'; 
     }
   
     // Options for day, month, and time formatting
     const day = date.getDate();
     const month = date.toLocaleString('en-US', { month: 'short' });
-    const hours = date.getHours() % 12 || 12; // 12-hour format
+    const hours = date.getHours() % 12 || 12; 
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    const ampm = date.getHours() >= 12 ? 'pm' : 'am'; // AM/PM check
+    const ampm = date.getHours() >= 12 ? 'pm' : 'am'; 
   
     return `${day} ${month}, ${hours}:${minutes}${ampm}`;
   };
@@ -217,10 +237,8 @@ export default function EventDetailsPage() {
             ) : (
                 <p className="text-gray-500">Organizer details not available</p>
             )}
-            <div className="ml-32">
-            <button className="bg-transparent text-[#101820] hover:text-gray-600 font-poppins font-[400] text-[16px] px-4 py-2 focus:outline-none">
-            Send Message
-            </button>
+            <div className="ml-auto">
+           
             <button className="border border-[#101820] text-[#101820] font-[400] ml-5 hover:bg-gray-600 hover:text-white font-poppins  text-[16px] 
             px-4 py-1  rounded-lg transition duration-200">
             Follow
@@ -327,22 +345,3 @@ export default function EventDetailsPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

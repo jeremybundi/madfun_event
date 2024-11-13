@@ -132,8 +132,30 @@ export default function EventDetailsPage() {
   if (error || !event) {
     return <div>{error || "Event not found."}</div>;
   }
-  const specialGuests = event.specialGuests ? JSON.parse(event.specialGuests) : [];
 
+
+  let specialGuests: { name: string }[] = [];
+
+  if (event.specialGuests) {
+    try {
+      // Check if specialGuests is a valid JSON array string
+      if (event.specialGuests.trim().startsWith('[') && event.specialGuests.trim().endsWith(']')) {
+        // It's a valid JSON array, so parse it directly
+        specialGuests = JSON.parse(event.specialGuests);
+      } else if (event.specialGuests.includes(',')) {
+        const guestsArray = event.specialGuests.split(',').map(guest => ({ name: guest.trim() }));
+        specialGuests = guestsArray;
+      } else {
+        specialGuests = [{ name: event.specialGuests }];
+      }
+    } catch (error) {
+      console.error("Error parsing specialGuests:", error);
+      specialGuests = [];
+    }
+  }
+  
+  console.log(specialGuests); // For debugging
+  
   const formatShowStartTime = (startTime: string | Date) => {
     const date = new Date(startTime);
   
@@ -258,7 +280,7 @@ export default function EventDetailsPage() {
     </div>
   </div>
 
-  <div className="bg-gray-100 h-[500px] -mt-4 rounded-b-lg overflow-y-scroll">
+  <div className="bg-gray-100 md:h-[730px] -mt-4 rounded-b-lg overflow-y-scroll">
       <div className=" mt-3  mx-4">
         
         {event.shows.map((show) => (

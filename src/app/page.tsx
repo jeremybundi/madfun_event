@@ -28,6 +28,8 @@ type Event = {
   total_tickets: number;
   posterURL: string;
   shows: Show[];
+  showType: 'SINGLE' | 'MULTIPLE'; 
+
 };
 
 function EventCard({ event }: { event: Event }) {
@@ -35,10 +37,10 @@ function EventCard({ event }: { event: Event }) {
     ?.flatMap((show) => show.tickets.map((ticket) => ticket.price))
     .reduce((min, price) => (price < min ? price : min), Infinity);
 
-  // Determine the route based on the number of shows
-  const eventRoute = event.shows.length === 1 
-    ? `/events/${event.eventId}/single-show` 
-    : `/events/${event.eventId}/multiple-shows`;
+    const eventRoute =
+    event.showType === 'SINGLE'
+      ? `/events/${event.eventId}/single-show`
+      : `/events/${event.eventId}/multi-show`;;
 
   return (
     <Link href={eventRoute}>
@@ -184,11 +186,11 @@ export default function Page() {
               <div className="flex flex-col items-center justify-center mt-4">
                 <button
                   onClick={() => setShowAllEvents(true)}
-                  className="text-xs font-semibold hover:underline"
+                  className="text-lg font-poppins  mt-8  font-semibold hover:underline"
                 >
                   View More
                 </button>
-                <div className="mt-2">
+                <div className="mt-1 font-semibold">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="25"

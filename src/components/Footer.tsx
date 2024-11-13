@@ -56,12 +56,13 @@ export default function Footer() {
         {/* First column: Logo */}
         <div className="flex flex-col ml-4 items-start mb-8 md:mb-0">
           <Image src={logo} alt="Logo" className="w-[40px] h-auto mb-4" />
-          <p className="text-xs mb-2 text-gray-400 font-barlow font-thin">
-            Madfun is an event and travel company offering
-            <p>seamless solutions for users to create & manage <p></p>
-            events, buy tickets, book flights, and <p></p> accommodations
-            with ease.</p>
-          </p>
+          <span className="text-xs mb-2 text-gray-400 font-barlow font-thin">
+          
+           <p>Madfun is an event and travel company offering</p> 
+            <p>seamless solutions for users to create & manage</p> 
+           <p> events, buy tickets, book flights, and </p>
+           <p>accommodations with ease.</p> 
+          </span>
           {/* Read More About link */}
           <a href="#" className="flex items-center font-barlow font-semibold text-xs md:mt-4 hover:underline">
             Read More About
@@ -98,10 +99,10 @@ export default function Footer() {
         {/* Third column: Subscribe */}
         <div className="flex flex-col mr-24 space-y-2 mb-8 md:mb-0">
           <h3 className="md:text-lg text-xs text-center font-semibold md:mb-4">Subscribe</h3>
-          <p className="mb-4 md:text-xs text-[10px] text-gray-400 font-barlow font-thin">
+          <span className="mb-4 md:text-xs text-[10px] text-gray-400 font-barlow font-thin">
             Sign up for our monthly blogletter <br />
             to stay informed about travel and events
-          </p>
+          </span>
           <div className="flex items-center border-4 mt-8 border-gray-500 rounded-lg">
   <input
     type="email"
