@@ -1,8 +1,8 @@
-
-"use client";
+"use client"
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useRouter } from 'next/navigation'; // Correct import for navigation
+import { useParams } from "next/navigation"; // Use useParams for dynamic route params
 import axios from "axios";
 import Header from "@/components/NavBar";
 import Image from "next/image";
@@ -11,9 +11,6 @@ import ticketIcon from "@/assets/images/ion_ticket-sharp.png";
 import shareIcon from '@/assets/images/share.png';
 import calendarIcon from '@/assets/images/calendar.png';
 import locationIcon from '@/assets/images/locationicon.png';
-
-
-
 
 type Ticket = {
   ticketId: number;
@@ -34,7 +31,6 @@ type Show = {
   tickets: Ticket[];
   latitude?: number; 
   longitude?: number; 
-  
 };
 
 type User = {
@@ -46,12 +42,12 @@ type User = {
     gender: string;
     birthday: string;
     cognitoUID: string;
-  };
+};
 
 type Organization = {
     organizationId: number;
     user: User;
-  };
+};
 
 type Event = {
   eventId: number;
@@ -66,11 +62,11 @@ type Event = {
   shows: Show[];
   ageLimit: string;
   organization?: Organization; 
-
 };
 
 export default function EventDetailsPage() {
-  const { id } = useParams();
+  const { id } = useParams(); // Use useParams for dynamic route params
+  const router = useRouter(); // Keep useRouter for navigation
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +113,32 @@ export default function EventDetailsPage() {
     }));
   };
 
+  const handleCheckout = () => {
+    if (event) {
+      const checkoutData = {
+        totalAmount,
+        image: event.posterURL,
+        title: event.title,
+        showName: event.shows[0]?.name,
+        date: event.shows[0].startTime,
+        location: event.shows[0]?.streetAddress,
+        ticketCategories: event.shows.flatMap(show => show.tickets.map(ticket => ({
+          name: ticket.name,
+          price: ticket.price,
+          quantity: ticketQuantities[ticket.ticketId] || 0
+        }))),
+      };
+
+           // Stringify the object and encode it for URL
+         // Stringify the object and encode it for URL
+         const queryString = encodeURIComponent(JSON.stringify(checkoutData));
+         console.log(checkoutData);
+
+         // Pass the encoded data as a query parameter
+         router.push(`/events/checkout?checkoutData=${queryString}`);
+    }
+  };
+
   if (loading) {
     return <div>Loading event details...</div>;
   }
@@ -125,14 +147,11 @@ export default function EventDetailsPage() {
     return <div>{error || "Event not found."}</div>;
   }
 
-
   let specialGuests: { name: string }[] = [];
 
   if (event.specialGuests) {
     try {
-
       if (event.specialGuests.trim().startsWith('[') && event.specialGuests.trim().endsWith(']')) {
-
         specialGuests = JSON.parse(event.specialGuests);
       } else if (event.specialGuests.includes(',')) {
         const guestsArray = event.specialGuests.split(',').map(guest => ({ name: guest.trim() }));
@@ -148,23 +167,22 @@ export default function EventDetailsPage() {
 
   const formatShowStartTime = (startTime: string | Date) => {
     const date = new Date(startTime);
-  
+
     // Check if date is invalid
     if (isNaN(date.getTime())) {
       return 'Invalid date'; 
     }
-  
+
     // Options for day, month, and time formatting
     const day = date.getDate();
     const month = date.toLocaleString('en-US', { month: 'short' });
     const hours = date.getHours() % 12 || 12; 
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const ampm = date.getHours() >= 12 ? 'pm' : 'am'; 
-  
+
     return `${day} ${month}, ${hours}:${minutes}${ampm}`;
   };
-  
-  
+
 
 
 
@@ -335,8 +353,8 @@ export default function EventDetailsPage() {
             <span className="text-[14px] font-barlow font-[400]">Total </span>
             <span className="font-poppins text-[20px] font-[600]"> Ksh {totalAmount.toFixed(2)}</span>
             </div>
-            <button className="bg-[#101820] text-white h-[52px] w-[183px] mr-7 rounded-lg hover:bg-gray-700">
-              Checkout
+            <button onClick={handleCheckout} className="bg-[#101820] text-white h-[52px] w-[183px] mr-7 rounded-lg hover:bg-gray-700">
+            Checkout
             </button>
           </div>
         </div>

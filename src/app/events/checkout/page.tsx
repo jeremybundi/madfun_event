@@ -1,13 +1,13 @@
 "use client";
 
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import logo from '@/assets/images/logo2.png'; 
 
 export default function Page() {
   const [phoneNumber, setPhoneNumber] = useState('+254');
   const [paymentNumber, setPaymentNumber] = useState('+254');
+  const [checkoutData, setCheckoutData] = useState<any>(null); // Add state for checkout data
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -17,8 +17,17 @@ export default function Page() {
     }
   };
 
+  useEffect(() => {
+    // Get checkout data from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedCheckoutData = urlParams.get('checkoutData');
+    if (encodedCheckoutData) {
+      setCheckoutData(JSON.parse(decodeURIComponent(encodedCheckoutData)));
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className=" flex min-h-screen flex-col md:flex-row">
       {/* Left Column - 1/3 */}
       <div className="w-full md:w-1/3 bg-[#F3F5F8] p-6 flex items-start">
         <div className="flex flex-col">
@@ -45,6 +54,71 @@ export default function Page() {
           </div>
 
           <p className="font-poppins text-[16px] ml-2 font-[400] my-3">Pay Madfun</p>
+          
+          {/* Display Checkout Data */}
+          {checkoutData && (
+            <div className=" p-4 rounded-md">
+              <div className="space-y-4">
+                {/* Total Amount */}
+                <p className="font-poppins text-[36px] font-[500]"> Ksh {checkoutData.totalAmount}</p>
+                
+                {/* Image and Title */}
+                <div className="flex items-center space-x-4">
+                  <Image 
+                    src={checkoutData.image} 
+                    alt="Event Poster" 
+                    width={100} 
+                    height={100} 
+                    className="object-cover rounded-md" 
+                  />
+                  <p className="font-poppins text-[20px] text-[#101820] font-[600]">{checkoutData.title}</p>
+                </div>
+
+                {/* Show Name, Date, and Location */}
+                <div className="space-y-2">
+                  <p className="font-poppins text-[14px]  text-[#101820] font-[500]">{checkoutData.showName}</p>
+                  <div className="flex font-[Barlow] text-[14px] font-[400] text-[#101820] items-center">
+                  <p className="flex items-center">
+                    {new Date(checkoutData.date).toLocaleString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}
+                  </p>                
+                    <span className="relative mx-4 font-extrabold text-2xl" style={{ top: '-0.25em' }}>.</span>
+                  <p className="flex items-center"> {checkoutData.location}</p>
+                </div>
+
+
+
+                </div>
+
+                {/* Ticket Categories */}
+                <div className="space-y-2">
+                  {checkoutData.ticketCategories.map((ticket: any, index: number) => (
+                    <div key={index} className=" ">
+                      <div className='flex font-[Barlow] font-[600] text-[#101820] text-[16px]'><p>{ticket.name}</p>
+                      <p className='ml-auto'> Ksh {ticket.price}</p></div>
+                      <span className='flex  mt-3'> 
+                        <p className='text-gray-600 '>Qty <span className=' font-semibold'>{ticket.quantity}</span> </p>
+                        <p className='ml-auto font-[barlow] font-[400] text-[14px] text-gray-600'> Ksh {ticket.price} each</p>
+
+
+                        </span>
+              
+                    </div>
+                  ))}
+                </div>
+                <div className='flex mt-7 font-poppins'>
+                  <p className='font-[600] text-lg'>Total Cost</p>
+                  <p className='ml-auto text-lg font-[700]'>Ksh {checkoutData.totalAmount}</p>
+
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -129,7 +203,7 @@ export default function Page() {
             </button>
             
             {/* Card Payment Button */}
-            <button className="bg-white font-medium py-2 px-10 sm:px-16 sm:ml-6 rounded-md hover:bg-gray-400 transition duration-300">
+            <button className="font-medium py-2 px-10 sm:px-16 sm:ml-6 rounded-md hover:bg-white transition duration-300">
               Card
             </button>
           </div>
@@ -145,30 +219,34 @@ export default function Page() {
           </div>
         </div>
         <div className='mt-8'>
-        <p className='font-poppins font-[400] text-[14px] text-[#808A92] italic'>
-          Ticket(s) cannot be exchanged, cancelled or refunded after purchase.
-        </p>
+          <p className='font-poppins font-[400] text-[14px] text-[#808A92] italic'>
+            Ticket(s) cannot be exchanged, cancelled or refunded after purchase.
+          </p>
 
-   {/* Terms and Conditions Checkbox */}
-      <div className='mt-3 flex items-start'>
-        <input
-          type='checkbox'
-          id='terms'
-          className='w-6 h-6 border-[#101820] border-2 rounded focus:ring-gray-800 focus:ring-2'
-        />
-        <label className='ml-2 font-poppins text-[14px] font-[400]'>
-          By ticking the box, I Agree to the <span className='font-[600]'>Terms and Conditions</span>
-        </label>
-      </div>
-     {/* Pay Now Button */}
-      <div className='mt-6'>
-        <button className='w-1/3 bg-[#101820] font-poppins font-[500] text-white py-3 rounded-md hover:bg-gray-700 transition duration-300'>
-          Pay Now
-        </button>
-      </div>
+          {/* Terms and Conditions Checkbox */}
+          <div className='mt-3 flex items-start'>
+            <input
+              type='checkbox'
+              id='terms'
+              className='w-6 h-6 border-[#101820] border-2 rounded focus:ring-gray-800 focus:ring-2'
+            />
+            <label
+              htmlFor='terms'
+              className='font-poppins text-[14px] text-[#101820] font-[400] ml-3'
+            >
+              By clicking the box, I agree to the
+              <span className='text-[#101820] font-poppins font-[600] underline text-[14px] ml-2'>
+                Terms & Conditions
+              </span>
+            </label>
+          </div>
+        </div>
 
-      </div>
-
+        <div className="mt-8 flex justify-start">
+          <button className="bg-[#101820] py-3 px-16 rounded-md font-[500] justify-center text-white hover:bg-gray-500 transition duration-300">
+            Proceed to Pay
+          </button>
+        </div>
       </div>
     </div>
   );

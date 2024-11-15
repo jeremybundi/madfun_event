@@ -1,10 +1,9 @@
-// src/store/store.js
 import { configureStore } from '@reduxjs/toolkit';
-import singleEventReducer from './singleEventSlice';
+import ticketReducer from './ticketSlice';
 
 const store = configureStore({
   reducer: {
-    singleEvent: singleEventReducer,
+    tickets: ticketReducer,
   },
 });
 
